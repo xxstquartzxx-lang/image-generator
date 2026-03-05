@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="アパレル画像AIジェネレーター – 撮影画像をアップロードしAIでシーン変換・背景置換を行う業務効率化ツール" />
+    <title>Apparel AI Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css?v=2" />
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand">
+                <span class="brand-icon">✦</span>
+                <span class="brand-name">Apparel AI Generator</span>
+            </div>
+            <span class="header-badge">Beta</span>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="app-main">
+
+        <!-- ─── LEFT PANEL ─────────────────────────────────────── -->
+        <section class="panel panel-input" aria-label="入力エリア">
+
+            <!-- Upload Area -->
+            <div class="section-block">
+                <h2 class="section-title">
+                    <span class="section-icon">📁</span> 画像アップロード
+                </h2>
+                <div class="upload-zone" id="uploadZone" tabindex="0" role="button"
+                    aria-label="画像をドラッグ＆ドロップ、またはクリックして選択">
+                    <div class="upload-idle" id="uploadIdle">
+                        <div class="upload-icon-wrap">
+                            <svg class="upload-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M24 4L14 16h7v16h6V16h7L24 4z" fill="currentColor" />
+                                <path d="M8 36v6h32v-6" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <p class="upload-primary">ドラッグ＆ドロップ</p>
+                        <p class="upload-secondary">または <span class="upload-link">クリックして選択</span></p>
+                        <p class="upload-hint">JPG / PNG / WEBP（最大 20MB）</p>
+                    </div>
+                    <div class="upload-preview" id="uploadPreview" hidden>
+                        <img id="previewThumb" src="" alt="プレビュー" />
+                        <div class="upload-preview-info">
+                            <span id="previewFileName" class="preview-filename"></span>
+                            <button class="btn-ghost btn-sm" id="btnChangeImage" type="button">変更</button>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" hidden />
+                </div>
+            </div>
+
+            <!-- Prompt Pattern Selection -->
+            <div class="section-block">
+                <h2 class="section-title">
+                    <span class="section-icon">🎨</span> シーン選択
+                </h2>
+                <p class="section-desc">生成するシーンを1つ選択してください</p>
+                <div class="tag-container" id="tagContainer" role="radiogroup" aria-label="シーン選択"></div>
+            </div>
+
+            <!-- Add Pattern -->
+            <div class="section-block">
+                <h2 class="section-title">
+                    <span class="section-icon">➕</span> パターンを追加
+                </h2>
+                <div class="add-pattern-form">
+                    <input type="text" id="patternInput" class="text-input" placeholder="例: 海辺の夕暮れ背景" maxlength="80"
+                        aria-label="新しいプロンプトパターン名" />
+                    <button class="btn-secondary" id="btnAddPattern" type="button">追加</button>
+                </div>
+                <p class="add-hint" id="addHint" hidden></p>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="section-block generate-block">
+                <button class="btn-primary btn-generate" id="btnGenerate" type="button" disabled>
+                    <span class="btn-generate-icon">⚡</span>
+                    <span id="btnGenerateText">AIで画像生成</span>
+                </button>
+                <p class="generate-hint">画像とパターンを選択して実行してください</p>
+            </div>
+
+        </section>
+
+        <!-- ─── RIGHT PANEL ────────────────────────────────────── -->
+        <section class="panel panel-preview" aria-label="プレビューエリア">
+
+            <div class="preview-header">
+                <h2 class="section-title">
+                    <span class="section-icon">🖼️</span> 生成結果
+                </h2>
+                <button class="btn-download" id="btnDownload" type="button" disabled>
+                    <svg viewBox="0 0 20 20" fill="currentColor" class="dl-icon">
+                        <path d="M10 14l-5-5h3V4h4v5h3l-5 5z" />
+                        <path d="M3 16h14v2H3v-2z" />
+                    </svg>
+                    ダウンロード
+                </button>
+            </div>
+
+            <div class="preview-body" id="previewBody">
+
+                <!-- Empty State -->
+                <div class="preview-empty" id="previewEmpty">
+                    <div class="empty-illustration">
+                        <div class="empty-circle">
+                            <svg viewBox="0 0 64 64" fill="none" class="empty-icon">
+                                <rect x="8" y="12" width="48" height="40" rx="4" stroke="currentColor"
+                                    stroke-width="2" />
+                                <circle cx="22" cy="26" r="5" stroke="currentColor" stroke-width="2" />
+                                <path d="M8 44l12-10 8 8 8-7 12 9" stroke="currentColor" stroke-width="2"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="empty-title">生成結果がここに表示されます</p>
+                    <p class="empty-sub">左側で画像とパターンを選択し、「AIで画像生成」を実行してください</p>
+                </div>
+
+                <!-- Loading State -->
+                <div class="preview-loading" id="previewLoading" hidden>
+                    <div class="spinner-ring"></div>
+                    <p class="loading-title">AIが処理中です…</p>
+                    <p class="loading-sub" id="loadingSubText">画像を解析しています</p>
+                    <div class="loading-bar-track">
+                        <div class="loading-bar-fill" id="loadingBarFill"></div>
+                    </div>
+                </div>
+
+                <!-- Result State -->
+                <div class="preview-result" id="previewResult" hidden>
+                    <img id="resultImage" src="" alt="AI生成結果" class="result-img" />
+                    <div class="result-metadata" id="resultMetadata"></div>
+                </div>
+
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
