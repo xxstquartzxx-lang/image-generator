@@ -45,17 +45,15 @@ def call_gemini(image_base64: str, mime_type: str, prompt: str) -> tuple[str, st
     Gemini API にプロンプトを送り、生成画像の (base64, mimeType) を返す。
 
     ◆ 使用モデルについて
-      gemini-2.0-flash-exp-image-generation はテキスト→画像専用モデル。
-      インライン画像（inlineData）を送ると INVALID_ARGUMENT になるため
-      テキストプロンプトのみを送信する。
-      画像をそのまま編集したい場合は gemini-2.0-flash-exp を使用すること。
+      gemini-3.1-flash-image-preview が現在の推奨モデル（画像入出力対応）。
+      元画像を inline_data で渡し、テキストで編集指示を与える画像編集モード。
     """
     if not GEMINI_API_KEY or GEMINI_API_KEY == 'your_api_key_here':
         raise ValueError('.env の GEMINI_API_KEY が設定されていません')
 
     url = (
         f'https://generativelanguage.googleapis.com/v1beta/models/'
-        f'{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}'
+        f'{GEMINI_MODEL}:generateContent'
     )
 
     # Gemini が受け付ける MIME タイプを正規化
@@ -63,18 +61,17 @@ def call_gemini(image_base64: str, mime_type: str, prompt: str) -> tuple[str, st
     if mime_type not in accepted:
         mime_type = 'image/jpeg'
 
-    # 画像入力対応モデル（gemini-2.0-flash-exp）:
-    #   inlineData で元画像を渡し、テキストで編集指示を与える（画像編集モード）
+    # 画像編集モード: inline_data で元画像、text でプロンプトを送信
     payload = {
         'contents': [{
             'parts': [
+                {'text': prompt},
                 {
-                    'inlineData': {
-                        'mimeType': mime_type,
+                    'inline_data': {
+                        'mime_type': mime_type,
                         'data': image_base64,
                     }
                 },
-                {'text': prompt},
             ]
         }],
         'generationConfig': {
@@ -85,7 +82,10 @@ def call_gemini(image_base64: str, mime_type: str, prompt: str) -> tuple[str, st
     body = json.dumps(payload).encode('utf-8')
     req  = urllib.request.Request(
         url, data=body,
-        headers={'Content-Type': 'application/json'},
+        headers={
+            'Content-Type': 'application/json',
+            'x-goog-api-key': GEMINI_API_KEY,
+        },
         method='POST',
     )
 
